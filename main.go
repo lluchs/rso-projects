@@ -9,49 +9,53 @@ import (
 	"time"
 )
 
+// Registers is a nicely-sorted list of instrument registers.
+var Registers []string = []string{"Woodwinds", "Brass", "Strings", "Percussion", "Other"}
+
 // Instrument defines an RSO instrument for matching in descriptions.
 type Instrument struct {
-	Name  string
-	regex *regexp.Regexp
+	Register string
+	Name     string
+	regex    *regexp.Regexp
 }
 
 var instruments = []Instrument{
-	Instrument{"Flute", regexp.MustCompile(`(?i)flute`)},
-	Instrument{"Piccolo", regexp.MustCompile(`(?i)piccolo`)},
-	Instrument{"Recorder", regexp.MustCompile(`(?i)recorder`)},
-	Instrument{"Oboe", regexp.MustCompile(`(?i)oboe`)},
-	Instrument{"English Horn", regexp.MustCompile(`(?i)english horn`)},
-	Instrument{"Bassoon", regexp.MustCompile(`(?i)bassoon`)},
-	Instrument{"Clarinet", regexp.MustCompile(`(?i)clarinet`)},
-	Instrument{"Eb Clarinet", regexp.MustCompile(`(?i)e(b|-flat) clarinet`)},
-	Instrument{"Bass Clarinet", regexp.MustCompile(`(?i)bass clarinet`)},
-	Instrument{"Soprano Saxophone", regexp.MustCompile(`(?i)soprano sax`)},
-	Instrument{"Alto Saxophone", regexp.MustCompile(`(?i)alto sax`)},
-	Instrument{"Tenor Saxophone", regexp.MustCompile(`(?i)tenor sax`)},
-	Instrument{"Baritone Saxophone", regexp.MustCompile(`(?i)baritone sax`)},
-	Instrument{"Cornet", regexp.MustCompile(`(?i)cornet`)},
-	Instrument{"Trumpet", regexp.MustCompile(`(?i)trumpet`)},
-	Instrument{"Horn", regexp.MustCompile(`(?i)horn in`)},
-	Instrument{"Trombone", regexp.MustCompile(`(?i)trombone`)},
-	Instrument{"Tuba", regexp.MustCompile(`(?i)tuba`)},
-	Instrument{"Euphonium", regexp.MustCompile(`(?i)euphonium`)},
-	Instrument{"Violin", regexp.MustCompile(`(?i)violin`)},
-	Instrument{"Viola", regexp.MustCompile(`(?i)viola`)},
-	Instrument{"Cello", regexp.MustCompile(`(?i)cello`)},
-	Instrument{"Double Bass", regexp.MustCompile(`(?i)double bass`)},
-	Instrument{"Harp", regexp.MustCompile(`(?i)harp`)},
-	Instrument{"Keyboard", regexp.MustCompile(`(?im)(keyboard|piano$)`)},
-	Instrument{"Percussion", regexp.MustCompile(`(?i)(percussion|drum|triangle|cymbal)`)},
-	Instrument{"Timpani", regexp.MustCompile(`(?i)timpani`)},
+	Instrument{"Woodwinds", "Flute", regexp.MustCompile(`(?i)flute`)},
+	Instrument{"Woodwinds", "Piccolo", regexp.MustCompile(`(?i)piccolo`)},
+	Instrument{"Woodwinds", "Recorder", regexp.MustCompile(`(?i)recorder`)},
+	Instrument{"Woodwinds", "Oboe", regexp.MustCompile(`(?i)oboe`)},
+	Instrument{"Woodwinds", "English Horn", regexp.MustCompile(`(?i)english horn`)},
+	Instrument{"Woodwinds", "Bassoon", regexp.MustCompile(`(?i)bassoon`)},
+	Instrument{"Woodwinds", "Clarinet", regexp.MustCompile(`(?i)clarinet`)},
+	Instrument{"Woodwinds", "Eb Clarinet", regexp.MustCompile(`(?i)e(b|-flat) clarinet`)},
+	Instrument{"Woodwinds", "Bass Clarinet", regexp.MustCompile(`(?i)bass clarinet`)},
+	Instrument{"Woodwinds", "Soprano Saxophone", regexp.MustCompile(`(?i)soprano sax`)},
+	Instrument{"Woodwinds", "Alto Saxophone", regexp.MustCompile(`(?i)alto sax`)},
+	Instrument{"Woodwinds", "Tenor Saxophone", regexp.MustCompile(`(?i)tenor sax`)},
+	Instrument{"Woodwinds", "Baritone Saxophone", regexp.MustCompile(`(?i)baritone sax`)},
+	Instrument{"Brass", "Cornet", regexp.MustCompile(`(?i)cornet`)},
+	Instrument{"Brass", "Trumpet", regexp.MustCompile(`(?i)trumpet`)},
+	Instrument{"Brass", "Horn", regexp.MustCompile(`(?i)horn in`)},
+	Instrument{"Brass", "Trombone", regexp.MustCompile(`(?i)trombone`)},
+	Instrument{"Brass", "Tuba", regexp.MustCompile(`(?i)tuba`)},
+	Instrument{"Brass", "Euphonium", regexp.MustCompile(`(?i)euphonium`)},
+	Instrument{"Strings", "Violin", regexp.MustCompile(`(?i)violin`)},
+	Instrument{"Strings", "Viola", regexp.MustCompile(`(?i)viola`)},
+	Instrument{"Strings", "Cello", regexp.MustCompile(`(?i)cello`)},
+	Instrument{"Strings", "Double Bass", regexp.MustCompile(`(?i)double bass`)},
+	Instrument{"Other", "Harp", regexp.MustCompile(`(?i)harp`)},
+	Instrument{"Other", "Keyboard", regexp.MustCompile(`(?im)(keyboard|piano$)`)},
+	Instrument{"Percussion", "Percussion", regexp.MustCompile(`(?i)(percussion|drum|triangle|cymbal)`)},
+	Instrument{"Percussion", "Timpani", regexp.MustCompile(`(?i)timpani`)},
 }
 
 // findInstruments returns all instruments that the project with the given description needs.
-func findInstruments(text string) []string {
+func findInstruments(text string) []Instrument {
 	// TODO: First, match Markdown list item (^\* )
-	var result []string
+	var result []Instrument
 	for _, instr := range instruments {
 		if instr.regex.FindString(text) != "" {
-			result = append(result, instr.Name)
+			result = append(result, instr)
 		}
 	}
 	return result
@@ -90,7 +94,7 @@ func printProjects(search *RedditSearch) {
 		fmt.Printf("Project %d: %s\n%s\n", i, project.Data.Title, project.Data.URL)
 		fmt.Printf("Due: %s\n", findDeadline(project.Data.Selftext, int64(project.Data.CreatedUtc)).Format("2006-01-02"))
 		for _, instr := range findInstruments(project.Data.Selftext) {
-			fmt.Printf(" - %s\n", instr)
+			fmt.Printf(" - %s\n", instr.Name)
 		}
 	}
 }
@@ -122,5 +126,6 @@ func main() {
 	}
 
 	//printProjects(&search)
-	printGanttChartData(&search)
+	//printGanttChartData(&search)
+	createHTMLPage(&search)
 }

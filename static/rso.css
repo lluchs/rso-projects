@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap');
+
+:root {
+	--rso-color: #81d2c7;
+}
+
+a {
+	color: var(--rso-color);
+}
+
+body {
+	color: white;
+	background-color: black;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+header {
+	text-align: center;
+}
+
+header img {
+	max-width: 100%;
+	width: 50em;
+}
+
+main {
+	margin: 0 5em;
+}
+
+.project-row {
+	border-left: 0.5em solid white;
+	padding-left: 1em;
+}
+
+.project-attributes {
+	display: flex;
+}
+
+.project-attributes .attr {
+	display: flex;
+	flex-direction: column;
+}
+
+.project-attributes .attrname {
+	font-weight: bold;
+}
+
+.project-attributes .attr.organizer { width: 12em; }
+.project-attributes .attr.deadline { width: 8em; }
+
+.register-instruments {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.register-instruments + .register-instruments {
+	margin-left: 0.5em;
+}
+
+.register-instruments ul {
+	margin: 0;
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>RSO Projects</title>
+		<link rel="stylesheet" href="rso.css">
+	</head>
+	<body>
+		<header>
+			<a href="https://www.reddit.com/r/TheRedditSymphony/">
+				<img src="rso.png" alt="r/TheRedditSymphony">
+			</a>
+		</header>
+		<main>
+			<p><i>TODO: Some intro text about RSO</i></p>
+
+			<h2>Finished Projects</h2>
+			<p><i>TODO: Should always show the newest video from the playlist</i></p>
+			<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/_QTiIRVnF24" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+			<p>
+				<a href="https://www.youtube.com/playlist?list=PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv">View all finished projects on YouTube</a>
+			</p>
+
+			<h2>Participating</h2>
+			<p><i>TODO: Some text on how to participate</i></p>
+
+			<h2>Ongoing Projects</h2>
+			<p><i>TODO: Add links to the weekly update thread</i></p>
+			{{range .Projects}}
+			<div class="project-row">
+				<h3><a href="{{.URL}}">{{.Title}}</a></h3>
+				<div class="project-attributes">
+					<div class="attr organizer">
+						<div class="attrname">Organizer</div>
+						<div class="attrval">{{.Organizer}}</div>
+					</div>
+					<div class="attr deadline">
+						<div class="attrname">Deadline</div>
+						<div class="attrval">{{.EndDate}}</div>
+					</div>
+					<div class="attr instruments">
+						<div class="attrname">Instruments</div>
+						<div class="attrval">
+							{{$byreg := .InstrumentsByRegister}}
+							{{range .Registers}}
+							<details class="register-instruments">
+								<summary>{{.}}</summary>
+								<ul>
+									{{range (index $byreg .)}}
+									<li>{{.Name}}</li>
+									{{end}}
+								</ul>
+							</details>
+							{{end}}
+						</div>
+					</div>
+				</div>
+			</div>
+			{{end}}
+		</main>
+	</body>
+</html>

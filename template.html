@@ -25,7 +25,6 @@
 			<p><i>TODO: Some text on how to participate</i></p>
 
 			<h2>Ongoing Projects</h2>
-			<p><i>TODO: Add links to the weekly update thread</i></p>
 			{{range .Projects}}
 			<div class="project-row">
 				<h3><a href="{{.URL}}">{{.Title}}</a></h3>
@@ -37,6 +36,16 @@
 					<div class="attr deadline">
 						<div class="attrname">Deadline</div>
 						<div class="attrval">{{.EndDate}}</div>
+					</div>
+					<div class="attr last-update">
+						<div class="attrname">Last Update</div>
+						<div class="attrval">
+							{{if .LastUpdateDate}}
+							<a href="https://www.reddit.com{{.LastUpdatePermalink}}">{{.LastUpdateDate}}</a>
+							{{else}}
+							<i>None!</i>
+							{{end}}
+						</div>
 					</div>
 					<div class="attr instruments">
 						<div class="attrname">Instruments</div>

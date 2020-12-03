@@ -47,6 +47,7 @@ main {
 
 .project-attributes .attr.organizer { width: 12em; }
 .project-attributes .attr.deadline { width: 8em; }
+.project-attributes .attr.last-update { width: 8em; }
 
 .register-instruments {
 	display: inline-block;

@@ -6,6 +6,8 @@ import (
 	"os"
 	"sort"
 	"time"
+
+	"github.com/turnage/graw/reddit"
 )
 
 // Project holds information on an ongoing RSO project.
@@ -35,16 +37,19 @@ func instrumentsByRegister(instruments []Instrument) map[string][]Instrument {
 	return m
 }
 
-func createHTMLPage(search *RedditSearch) {
+func createHTMLPage(posts []reddit.Post) {
 	var projects []Project
 
-	for _, post := range search.Data.Children {
-		deadline := findDeadline(post.Data.Selftext, int64(post.Data.CreatedUtc))
+	for _, post := range posts {
+		if !isProject(&post) {
+			continue
+		}
+		deadline := findDeadline(post.SelfText, int64(post.CreatedUTC))
 		// Filter out finished projects.
 		if time.Now().After(deadline) {
 			continue
 		}
-		byreg := instrumentsByRegister(findInstruments(post.Data.Selftext))
+		byreg := instrumentsByRegister(findInstruments(post.SelfText))
 		var registers []string
 		for _, reg := range Registers {
 			if _, ok := byreg[reg]; ok {
@@ -52,10 +57,10 @@ func createHTMLPage(search *RedditSearch) {
 			}
 		}
 		p := Project{
-			Title:                 template.HTML(post.Data.Title),
-			Organizer:             post.Data.Author,
-			URL:                   post.Data.URL,
-			StartDate:             time.Unix(int64(post.Data.CreatedUtc), 0).Format("2006-01-02"),
+			Title:                 template.HTML(post.Title),
+			Organizer:             post.Author,
+			URL:                   post.URL,
+			StartDate:             time.Unix(int64(post.CreatedUTC), 0).Format("2006-01-02"),
 			EndDate:               deadline.Format("2006-01-02"),
 			Registers:             registers,
 			InstrumentsByRegister: byreg,

@@ -2,6 +2,7 @@
 
 :root {
 	--rso-color: #81d2c7;
+	--official-color: #46d160;
 	--main-margin: 5em;
 }
 
@@ -60,6 +61,10 @@ main {
 .project-row {
 	border-left: 0.5em solid white;
 	padding-left: 1em;
+}
+
+.project-row.official {
+	border-left-color: var(--official-color);
 }
 
 .project-attributes {

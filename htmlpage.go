@@ -10,11 +10,12 @@ import (
 
 // Project holds information on an ongoing RSO project.
 type Project struct {
-	Title     template.HTML // already escaped from the Reddit API
-	Organizer string
-	URL       string
-	StartDate string // ISO 8601
-	EndDate   string // ISO 8601
+	Title      template.HTML // already escaped from the Reddit API
+	Organizer  string
+	URL        string
+	StartDate  string // ISO 8601
+	EndDate    string // ISO 8601
+	IsOfficial bool
 
 	Registers             []string // sorted nicely
 	InstrumentsByRegister map[string][]Instrument
@@ -80,6 +81,7 @@ func createHTMLPage(client *DataClient) {
 			URL:                   post.URL,
 			StartDate:             time.Unix(int64(post.CreatedUTC), 0).Format("2006-01-02"),
 			EndDate:               deadline.Format("2006-01-02"),
+			IsOfficial:            post.LinkFlairText == "Official Project",
 			Registers:             registers,
 			InstrumentsByRegister: byreg,
 		}

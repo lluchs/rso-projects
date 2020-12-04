@@ -38,7 +38,7 @@
 
 			<h2>Ongoing Projects</h2>
 			{{range .Projects}}
-			<div class="project-row">
+			<div class="project-row {{if .IsOfficial}}official{{end}}">
 				<h3><a href="{{.URL}}">{{.Title}}</a></h3>
 				<div class="project-attributes">
 					<div class="attr organizer">
@@ -85,7 +85,7 @@
 			</p>
 			<script>
 				(function() {
-					var rows = Array.from(document.querySelectorAll(".project-row")).slice(3)
+					var rows = Array.from(document.querySelectorAll(".project-row:not(.official)")).slice(3)
 					rows.forEach(e => e.style.display = "none")
 					document.querySelector(".show-all").onclick = e => {
 						rows.forEach(e => e.style.display = "block")

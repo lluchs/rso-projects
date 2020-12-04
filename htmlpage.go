@@ -23,6 +23,12 @@ type Project struct {
 	LastUpdatePermalink string
 }
 
+// Video holds information on a YouTube video.
+type Video struct {
+	Title string
+	ID    string
+}
+
 // ProjectsByEndDate implements sort.Interface for soring by EndDate.
 type ProjectsByEndDate []Project
 
@@ -38,7 +44,7 @@ func instrumentsByRegister(instruments []Instrument) map[string][]Instrument {
 	return m
 }
 
-func createHTMLPage(client *RedditClient) {
+func createHTMLPage(client *DataClient) {
 	var projects []Project
 
 	for _, post := range client.Posts {
@@ -68,7 +74,11 @@ func createHTMLPage(client *RedditClient) {
 		}
 		if lastUpdate := findUpdateComment(&post, client.WeeklyUpdates); lastUpdate != nil {
 			p.LastUpdatePermalink = lastUpdate.Permalink
-			diff := time.Now().Sub(time.Unix(int64(lastUpdate.CreatedUTC), 0)).Hours() / 24
+			ts := lastUpdate.CreatedUTC
+			if lastUpdate.Edited > 0 {
+				ts = lastUpdate.Edited
+			}
+			diff := time.Now().Sub(time.Unix(int64(ts), 0)).Hours() / 24
 			if diff < 1 {
 				p.LastUpdateDate = "today"
 			} else if diff < 2 {
@@ -81,6 +91,12 @@ func createHTMLPage(client *RedditClient) {
 	}
 
 	sort.Sort(ProjectsByEndDate(projects))
+
+	v := &client.Videos[len(client.Videos)-1]
+	latestVideo := Video{
+		Title: v.Title,
+		ID:    v.ResourceId.VideoId,
+	}
 
 	tmpl, err := template.ParseFiles("template.html")
 	if err != nil {
@@ -95,7 +111,8 @@ func createHTMLPage(client *RedditClient) {
 	}
 
 	err = tmpl.Execute(f, map[string]interface{}{
-		"Projects": projects,
+		"Projects":    projects,
+		"LatestVideo": latestVideo,
 	})
 	if err != nil {
 		fmt.Println(err)

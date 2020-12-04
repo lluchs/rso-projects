@@ -8,10 +8,6 @@ import (
 	"github.com/turnage/graw/reddit"
 )
 
-// TODO: Newest published videos from
-// https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PLAl3fvW4KndjZDMFIs7w-f6Cm7Bp49gPA&maxResults=50&key=[YOUR_API_KEY]'
-// Use nextPageToken to walk to last page
-
 // isProject identifies projects by their flair.
 func isProject(post *reddit.Post) bool {
 	return post.LinkFlairText == "Approved Project" || post.LinkFlairText == "Official Project"
@@ -50,11 +46,9 @@ var cachedFlag = flag.Bool("cached", false, "use cached data")
 func main() {
 	flag.Parse()
 
-	client, err := NewRedditClient()
-	if err != nil {
-		fmt.Printf("couldn't initialize reddit client: %s\n", err)
-		return
-	}
+	client := NewDataClient()
+
+	var err error
 
 	if *cachedFlag {
 		if err = client.LoadFromCache(); err != nil {
@@ -62,6 +56,10 @@ func main() {
 			return
 		}
 	} else {
+		if err = client.Init(); err != nil {
+			fmt.Printf("couldn't initialize data client: %s\n", err)
+			return
+		}
 		if err = client.FetchPosts(); err != nil {
 			fmt.Printf("couldn't fetch posts: %s\n", err)
 			return
@@ -70,6 +68,11 @@ func main() {
 			fmt.Printf("couldn't fetch weekly updates: %s\n", err)
 			return
 		}
+		if err = client.FetchVideos(); err != nil {
+			fmt.Printf("couldn't fetch videos: %s\n", err)
+			return
+		}
+		return
 	}
 
 	//printProjects(&search)

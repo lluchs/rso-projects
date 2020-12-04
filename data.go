@@ -1,40 +1,61 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/turnage/graw/reddit"
+	"google.golang.org/api/option"
+	"google.golang.org/api/youtube/v3"
 )
 
-// RedditClient fetches RSO posts and comments.
-type RedditClient struct {
-	bot reddit.Bot
+var rsoPlaylistID = "PLAl3fvW4KndjZDMFIs7w-f6Cm7Bp49gPA"
+
+// DataClient fetches RSO posts and comments from reddit and videos from  YouTube.
+type DataClient struct {
+	bot     reddit.Bot
+	youtube *youtube.Service
 
 	Posts         []reddit.Post
 	WeeklyUpdates []reddit.Comment
+	Videos        []youtube.PlaylistItemSnippet
 }
 
-// NewRedditClient reads auth data from "agentfile" to initialize a reddit
-// client.
-func NewRedditClient() (*RedditClient, error) {
-	bot, err := reddit.NewBotFromAgentFile("agentfile", 1*time.Second)
+// NewDataClient creates a new, unitialized client.
+func NewDataClient() *DataClient {
+	return &DataClient{}
+}
+
+// Init reads auth data from "agentfile" to initialize a reddit
+// client and an API key from the YOUTUBE_API_KEY environment variable to
+// create a YouTube client.
+func (c *DataClient) Init() error {
+	var err error
+	c.bot, err = reddit.NewBotFromAgentFile("agentfile", 1*time.Second)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("creating reddit bot failed: %w", err)
 	}
-	return &RedditClient{
-		bot: bot,
-	}, nil
+
+	c.youtube, err = youtube.NewService(context.TODO(), option.WithAPIKey(os.Getenv("YOUTUBE_API_KEY")))
+	if err != nil {
+		return fmt.Errorf("creating YouTube client failed: %w", err)
+	}
+	return nil
 }
 
 // LoadFromCache populates posts and comments from data/*.json
-func (c *RedditClient) LoadFromCache() error {
+func (c *DataClient) LoadFromCache() error {
 	if err := loadFromCache("posts.json", &c.Posts); err != nil {
 		return err
 	}
 	if err := loadFromCache("weekly_updates.json", &c.WeeklyUpdates); err != nil {
+		return err
+	}
+	if err := loadFromCache("videos.json", &c.Videos); err != nil {
 		return err
 	}
 	return nil
@@ -42,7 +63,7 @@ func (c *RedditClient) LoadFromCache() error {
 
 // FetchPosts fetches the latest Approved Projects, Official Projects and
 // Official posts from Reddit.
-func (c *RedditClient) FetchPosts() error {
+func (c *DataClient) FetchPosts() error {
 	results, err := c.bot.ListingWithParams("/r/TheRedditSymphony/search", map[string]string{
 		"restrict_sr": "1",
 		"sort":        "new",
@@ -65,7 +86,7 @@ func (c *RedditClient) FetchPosts() error {
 }
 
 // FetchWeeklyUpdates fetches the comments on the last weekly project update threads.
-func (c *RedditClient) FetchWeeklyUpdates() error {
+func (c *DataClient) FetchWeeklyUpdates() error {
 	result, err := c.bot.ListingWithParams("/r/TheRedditSymphony/search", map[string]string{
 		"restrict_sr": "1",
 		"sort":        "new",
@@ -94,6 +115,27 @@ func (c *RedditClient) FetchWeeklyUpdates() error {
 	c.WeeklyUpdates = comments
 
 	return writeToCache("weekly_updates.json", comments)
+}
+
+// FetchVideos fetches the latest videos from YouTube.
+func (c *DataClient) FetchVideos() error {
+	var videos []youtube.PlaylistItemSnippet
+	call := c.youtube.PlaylistItems.List([]string{"snippet"}).PlaylistId(rsoPlaylistID).MaxResults(50)
+	err := call.Pages(context.TODO(), func(res *youtube.PlaylistItemListResponse) error {
+		for _, item := range res.Items {
+			videos = append(videos, *item.Snippet)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	sort.Slice(videos, func(i, j int) bool { return videos[i].PublishedAt < videos[j].PublishedAt })
+
+	c.Videos = videos
+
+	return writeToCache("videos.json", videos)
 }
 
 func writeToCache(name string, data interface{}) error {

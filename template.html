@@ -2,26 +2,39 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>RSO Projects</title>
+		<title>The Reddit Symphony Orchestra</title>
 		<link rel="stylesheet" href="rso.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/fontawesome.min.css" integrity="sha512-kJ30H6g4NGhWopgdseRb8wTsyllFUYIx3hiUwmGAkgA9B/JbzUBDQVr2VVlWGde6sdBVOG7oU8AL35ORDuMm8g==" crossorigin="anonymous" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/brands.min.css" integrity="sha512-D0B6cFS+efdzUE/4wh5XF5599DtW7Q1bZOjAYGBfC0Lg9WjcrqPXZto020btDyrlDUrfYKsmzFvgf/9AB8J0Jw==" crossorigin="anonymous" />
 	</head>
 	<body>
 		<header>
 			<a href="https://www.reddit.com/r/TheRedditSymphony/">
 				<img src="rso.png" alt="r/TheRedditSymphony">
 			</a>
+			<div class="music-director">
+				<strong>CasuallyNothing</strong>
+				<div>Music Director</div>
+			</div>
 		</header>
 		<main>
-			<p><i>TODO: Some intro text about RSO</i></p>
-
-			<h2>Finished Projects</h2>
-			<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/{{.LatestVideo.ID}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-			<p>
-				<a href="https://www.youtube.com/playlist?list=PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv">View all finished projects on YouTube</a>
-			</p>
+			<div class="content-wrap">
+			<div class="multi-column">
+				<div class="column">
+					<h2>What is RSO?</h2>
+					<p><i>TODO: Some intro text about RSO (does anyone want to write this?)</i></p>
+				</div>
+				<div class="column">
+					<h2>Finished Projects</h2>
+					<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/{{.LatestVideo.ID}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					<p>
+						We have over {{.VideoCount}} finished projects! <a href="https://www.youtube.com/playlist?list=PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv">View them all on YouTube.</a>
+					</p>
+				</div>
+			</div>
 
 			<h2>Participating</h2>
-			<p><i>TODO: Some text on how to participate</i></p>
+			<p><i>TODO: Some text on how to participate (does anyone want to write this?)</i></p>
 
 			<h2>Ongoing Projects</h2>
 			{{range .Projects}}
@@ -65,6 +78,59 @@
 				</div>
 			</div>
 			{{end}}
+			<p>
+				<a href="javascript:void 0" class="button show-all">
+					View all projects
+				</a>
+			</p>
+			<script>
+				(function() {
+					var rows = Array.from(document.querySelectorAll(".project-row")).slice(3)
+					rows.forEach(e => e.style.display = "none")
+					document.querySelector(".show-all").onclick = e => {
+						rows.forEach(e => e.style.display = "block")
+						e.target.style.display = "none"
+						e.preventDefault()
+					}
+				})()
+			</script>
+
+			<div class="news-block">
+				<h2>News</h2>
+				{{range .News}}
+				<div class="news-item">
+					<h3><a href="{{.URL}}">{{.Title}}</a></h3>
+					<div>
+						Posted by u/{{.Author}} on {{.Date}}.
+						<a href="https://www.reddit.com{{.Permalink}}">{{.NumComments}} comments</a>
+					</div>
+				</div>
+				{{end}}
+			</div>
+			</div> <!-- content-wrap -->
 		</main>
+
+		<footer>
+			<div class="multi-column content-wrap">
+				<div class="column">
+					<h3>Contact</h3>
+					<p><i>TODO: Some contact info</i></p>
+				</div>
+				<div class="column">
+					<h3>Join Our Community</h3>
+					<div class="community-links">
+						<div class="link">
+							<a href="https://www.reddit.com/r/TheRedditSymphony"><i class="fab fa-reddit"></i></a>
+						</div>
+						<div class="link">
+							<a href="https://discord.gg/TheRedditSymphony"><i class="fab fa-discord"></i></a>
+						</div>
+						<div class="link">
+							<a href="https://www.youtube.com/c/RedditSymphonyOrchestra"><i class="fab fa-youtube"></i></a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</footer>
 	</body>
 </html>

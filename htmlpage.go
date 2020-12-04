@@ -29,6 +29,16 @@ type Video struct {
 	ID    string
 }
 
+// News holds information on an official news item.
+type News struct {
+	Title       string
+	Author      string
+	Date        string
+	URL         string
+	Permalink   string
+	NumComments int32
+}
+
 // ProjectsByEndDate implements sort.Interface for soring by EndDate.
 type ProjectsByEndDate []Project
 
@@ -47,6 +57,7 @@ func instrumentsByRegister(instruments []Instrument) map[string][]Instrument {
 func createHTMLPage(client *DataClient) {
 	var projects []Project
 
+	// Find projects.
 	for _, post := range client.Posts {
 		if !isProject(&post) {
 			continue
@@ -92,10 +103,27 @@ func createHTMLPage(client *DataClient) {
 
 	sort.Sort(ProjectsByEndDate(projects))
 
+	// Find videos.
 	v := &client.Videos[len(client.Videos)-1]
 	latestVideo := Video{
 		Title: v.Title,
 		ID:    v.ResourceId.VideoId,
+	}
+
+	// Find news (flair Official).
+	var news []News
+	for _, post := range client.Posts {
+		if post.LinkFlairText != "Official" {
+			continue
+		}
+		news = append(news, News{
+			Title:       post.Title,
+			Author:      post.Author,
+			Date:        time.Unix(int64(post.CreatedUTC), 0).Format("2006-01-02"),
+			URL:         post.URL,
+			Permalink:   post.Permalink,
+			NumComments: post.NumComments,
+		})
 	}
 
 	tmpl, err := template.ParseFiles("template.html")
@@ -113,6 +141,8 @@ func createHTMLPage(client *DataClient) {
 	err = tmpl.Execute(f, map[string]interface{}{
 		"Projects":    projects,
 		"LatestVideo": latestVideo,
+		"VideoCount":  len(client.Videos),
+		"News":        news[0:5],
 	})
 	if err != nil {
 		fmt.Println(err)

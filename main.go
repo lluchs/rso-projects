@@ -72,7 +72,6 @@ func main() {
 			fmt.Printf("couldn't fetch videos: %s\n", err)
 			return
 		}
-		return
 	}
 
 	//printProjects(&search)

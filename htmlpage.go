@@ -115,7 +115,8 @@ func createHTMLPage(client *DataClient) {
 	// Find news (flair Official).
 	var news []News
 	for _, post := range client.Posts {
-		if post.LinkFlairText != "Official" {
+		// Only Official posts, skip weekly updates by AutoModerator.
+		if post.LinkFlairText != "Official" || post.Author == "AutoModerator" {
 			continue
 		}
 		news = append(news, News{

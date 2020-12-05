@@ -83,25 +83,27 @@
 							{{end}}
 						</div>
 					</div>
-					<div class="attr instruments">
-						<div class="attrname">Instruments</div>
-						<div class="attrval">
-							{{$byreg := .InstrumentsByRegister}}
-							{{range .Registers}}
-							<details class="register-instruments">
-								<summary>{{.}}</summary>
-								<ul>
-									{{range (index $byreg .)}}
-									<li>{{.Name}}</li>
-									{{end}}
-								</ul>
-							</details>
-							{{end}}
-						</div>
+				</div>
+				<div class="instruments">
+					<div class="attrname">Instruments:</div>
+					<div class="attrval">
+						{{$byreg := .InstrumentsByRegister}}
+						{{range .Registers}}
+						<details class="register-instruments">
+							<summary>{{.}}</summary>
+							<ul>
+								{{range (index $byreg .)}}
+								<li>{{.Name}}</li>
+								{{end}}
+							</ul>
+						</details>
+						{{end}}
 					</div>
 				</div>
 			</div>
 			{{end}}
+
+			<hr>
 
 			<div class="news-block">
 				<h2>News</h2>
@@ -109,8 +111,8 @@
 				<div class="news-item">
 					<h3><a href="{{.URL}}">{{.Title}}</a></h3>
 					<div>
-						Posted by u/{{.Author}} on {{.Date}}.
-						<a href="https://www.reddit.com{{.Permalink}}">{{.NumComments}} comments</a>
+						<span class="posted">Posted by u/{{.Author}} on {{.Date}}.</span>
+						<a href="https://www.reddit.com{{.Permalink}}">{{.NumComments}} comment{{if (ne .NumComments 1)}}s{{end}}</a>
 					</div>
 				</div>
 				{{end}}

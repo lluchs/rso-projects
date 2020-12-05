@@ -1,29 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap');
 
 :root {
-	--rso-color: #81d2c7;
+	--rso-mint: #81d2c7;
+	--rso-dark-blue: #182632;
+	--rso-medium-blue: #2A4257;
+	--rso-light-blue: #416788;
+	--rso-white: #E0E0E2;
+	/* other colors:
+	   E0E0E2
+       81D2C7
+       B5BAD0
+       7389AE
+       416788
+       2A4257
+       182632
+   */
 	--official-color: #46d160;
 	--main-margin: 5em;
 }
 
+.colors {
+	display: flex;
+}
+.colors div {
+	height: 1em;
+	flex: 1;
+}
+
 a {
-	color: var(--rso-color);
+	color: var(--rso-mint);
 }
 
 .button {
 	display: inline-block;
 	box-sizing: border-box;
-	background: var(--rso-color);
-	color: black;
+	background: var(--rso-mint);
+	color: var(--rso-dark-blue);
 	padding: 0.7em 1.4em;
 	margin: 0 0.3em 0.3em 0;
 	text-decoration: none;
+	transition: all 0.2s;
+}
+
+.button:hover {
+	background: var(--rso-medium-blue);
+	color: var(--rso-white);
 }
 
 body {
 	margin: 0;
-	color: white;
-	background-color: black;
+	color: var(--rso-white);
+	background-color: var(--rso-dark-blue);
 	font-family: 'IBM Plex Sans', sans-serif;
 }
 
@@ -56,6 +83,10 @@ main {
 
 .multi-column > .column {
 	flex: 1;
+}
+
+.multi-column > .column + .column {
+	margin-left: 2em;
 }
 
 .project-row {
@@ -113,12 +144,12 @@ footer {
 	margin-top: 5em;
 	min-height: 10em;
 	padding: 0 var(--main-margin);
-	background: var(--rso-color);
-	color: black;
+	background: var(--rso-mint);
+	color: var(--rso-dark-blue);
 }
 
 footer a {
-	color: black;
+	color: var(--rso-dark-blue);
 }
 
 .community-links {

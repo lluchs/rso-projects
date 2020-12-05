@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-var rsoPlaylistID = "PLAl3fvW4KndjZDMFIs7w-f6Cm7Bp49gPA"
+var rsoPlaylistID = "PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv"
 
 // DataClient fetches RSO posts and comments from reddit and videos from  YouTube.
 type DataClient struct {

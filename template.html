@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>The Reddit Symphony Orchestra</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="shortcut icon" href="favicon.ico">
 		<link rel="icon" href="icon.png" type="image/png">
 		<link rel="stylesheet" href="rso.css">
@@ -42,7 +43,9 @@
 				</div>
 				<div class="column">
 					<h2>Finished Projects</h2>
-					<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/{{.LatestVideo.ID}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					<div class="video-container">
+						<iframe src="https://www.youtube-nocookie.com/embed/{{.LatestVideo.ID}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div>
 					<p>
 						We have over {{.VideoCount}} finished projects! <a href="https://www.youtube.com/playlist?list=PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv">View them all on YouTube.</a>
 					</p>
@@ -112,7 +115,7 @@
 					<h3><a href="{{.URL}}">{{.Title}}</a></h3>
 					<div>
 						<span class="posted">Posted by u/{{.Author}} on {{.Date}}.</span>
-						<a href="https://www.reddit.com{{.Permalink}}">{{.NumComments}} comment{{if (ne .NumComments 1)}}s{{end}}</a>
+						<a href="https://www.reddit.com{{.Permalink}}">{{.NumComments}}&nbsp;comment{{if (ne .NumComments 1)}}s{{end}}</a>
 					</div>
 				</div>
 				{{end}}

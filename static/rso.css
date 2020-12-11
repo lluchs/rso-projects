@@ -72,6 +72,7 @@ header {
 header img {
 	max-width: 100%;
 	width: 50em;
+	filter: invert(24%) sepia(68%) saturate(198%) hue-rotate(121deg) brightness(91%) contrast(88%);
 }
 
 .music-director {

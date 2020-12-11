@@ -62,7 +62,7 @@ func findInstruments(text string) []Instrument {
 }
 
 // Example: The final date to submit is November 24th.
-var deadlineRegex = regexp.MustCompile(`(?mi)^.*(?:final date|due date|due on|last day).*?(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d+)`)
+var deadlineRegex = regexp.MustCompile(`(?mi)^.*(?:final date|due date|due on|last day).*?(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d+)`)
 
 // findDeadline finds the deadline from the text. It returns a zero timestamp
 // if no deadline is found.
@@ -72,7 +72,11 @@ func findDeadline(text string, created int64) time.Time {
 	if m == nil {
 		return t
 	}
-	t, err := time.Parse("January 2", fmt.Sprintf("%s %s", m[1], m[2]))
+	format := "January 2"
+	if len(m[1]) == 3 {
+		format = "Jan 2"
+	}
+	t, err := time.Parse(format, fmt.Sprintf("%s %s", m[1], m[2]))
 	if err != nil {
 		return t
 	}

@@ -61,6 +61,13 @@ func findInstruments(text string) []Instrument {
 	return result
 }
 
+var openInstrumentationRegex = regexp.MustCompile(`(?i)\bopen instrumentation\b`)
+
+// isOpenInstrumentation detects pieces with open instrumentation (i.e., every instrument can submit).
+func isOpenInstrumentation(text string) bool {
+	return openInstrumentationRegex.MatchString(text)
+}
+
 // Example: The final date to submit is November 24th.
 var deadlineRegex = regexp.MustCompile(`(?mi)^.*(?:final date|due date|due on|last day).*?(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d+)`)
 

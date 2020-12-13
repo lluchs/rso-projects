@@ -19,6 +19,7 @@ type Project struct {
 
 	Registers             []string // sorted nicely
 	InstrumentsByRegister map[string][]Instrument
+	IsOpenInstrumentation bool
 
 	LastUpdateDate      string
 	LastUpdatePermalink string
@@ -84,6 +85,7 @@ func createHTMLPage(client *DataClient) {
 			IsOfficial:            post.LinkFlairText == "Official Project",
 			Registers:             registers,
 			InstrumentsByRegister: byreg,
+			IsOpenInstrumentation: isOpenInstrumentation(post.SelfText),
 		}
 		if lastUpdate := findUpdateComment(&post, client.WeeklyUpdates); lastUpdate != nil {
 			p.LastUpdatePermalink = lastUpdate.Permalink

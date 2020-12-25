@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/turnage/graw/reddit"
+	"google.golang.org/api/youtube/v3"
 )
 
 // Registers is a nicely-sorted list of instrument registers.
@@ -102,6 +103,59 @@ func findUpdateComment(post *reddit.Post, updates []reddit.Comment) *reddit.Comm
 		if comment.Author == post.Author && strings.Contains(comment.Body, post.ID) {
 			return &comment
 		}
+	}
+	return nil
+}
+
+// Video matching support
+
+var similarityBadwordRegex *regexp.Regexp = regexp.MustCompile(`(?i)(/?r/)?theredditsymphony|rso|community|project|performed by|composition|symphonic movement|orchestra`)
+
+// withoutSimilarityBadwords removes common words in project titles.
+func withoutSimilarityBadwords(s string) string {
+	return similarityBadwordRegex.ReplaceAllString(s, "")
+}
+
+// lcs calulates the longest common substring of two strings.
+// https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#Go
+func lcs(s1 string, s2 string) string {
+	var m = make([][]int, 1+len(s1))
+	for i := 0; i < len(m); i++ {
+		m[i] = make([]int, 1+len(s2))
+	}
+	longest := 0
+	xLongest := 0
+	for x := 1; x < 1+len(s1); x++ {
+		for y := 1; y < 1+len(s2); y++ {
+			if s1[x-1] == s2[y-1] {
+				m[x][y] = m[x-1][y-1] + 1
+				if m[x][y] > longest {
+					longest = m[x][y]
+					xLongest = x
+				}
+			}
+		}
+	}
+	return s1[xLongest-longest : xLongest]
+}
+
+// findMatchingVideo finds the release video for a post.
+func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItemSnippet) *youtube.PlaylistItemSnippet {
+	postTitle := withoutSimilarityBadwords(post.Title)
+	var bestVideo int
+	var lcstr string
+
+	for i, v := range videos {
+		videoTitle := withoutSimilarityBadwords(v.Title)
+		l := lcs(videoTitle, postTitle)
+		if len(l) > len(lcstr) {
+			bestVideo = i
+			lcstr = l
+		}
+	}
+	if len(lcstr) > 10 {
+		//fmt.Printf("  LCS(%d)(%s): %s\n", len(lcstr), lcstr, client.Videos[bestVideo].Title)
+		return &videos[bestVideo]
 	}
 	return nil
 }

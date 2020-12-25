@@ -7,6 +7,8 @@ import (
 	"os"
 	"sort"
 	"time"
+
+	"google.golang.org/api/youtube/v3"
 )
 
 // Project holds information on an ongoing RSO project.
@@ -24,12 +26,23 @@ type Project struct {
 
 	LastUpdateDate      string
 	LastUpdatePermalink string
+
+	ReleasedVideo *Video
 }
 
 // Video holds information on a YouTube video.
 type Video struct {
 	Title string
 	ID    string
+	Date  string // ISO 8601
+}
+
+func videoFromYT(v *youtube.PlaylistItemSnippet) Video {
+	return Video{
+		Title: v.Title,
+		ID:    v.ResourceId.VideoId,
+		Date:  v.PublishedAt,
+	}
 }
 
 // News holds information on an official news item.
@@ -102,6 +115,10 @@ func createHTMLPage(client *DataClient) {
 				p.LastUpdateDate = fmt.Sprintf("%d days ago", int(diff))
 			}
 		}
+		if video := findMatchingVideo(&post, client.Videos); video != nil {
+			v := videoFromYT(video)
+			p.ReleasedVideo = &v
+		}
 		allProjects = append(allProjects, p)
 		// Separate list with only active projects.
 		if !time.Now().After(deadline) {
@@ -113,11 +130,7 @@ func createHTMLPage(client *DataClient) {
 	sort.Sort(ProjectsByEndDate(activeProjects))
 
 	// Find videos.
-	v := &client.Videos[len(client.Videos)-1]
-	latestVideo := Video{
-		Title: v.Title,
-		ID:    v.ResourceId.VideoId,
-	}
+	latestVideo := videoFromYT(&client.Videos[len(client.Videos)-1])
 
 	// Find news (flair Official).
 	var news []News

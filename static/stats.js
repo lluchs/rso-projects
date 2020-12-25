@@ -23,7 +23,9 @@ function getTooltipContent(d) {
 <b style="color:${d.color.darker()}">${d.Organizer}</b>
 <br/>
 ${d.StartDate} - ${d.EndDate}
-`
+`+(d.ReleasedVideo != null ? `<br/>
+Release: ${d.ReleasedVideo.Date.replace(/T.*/, '')}
+` : "")
 }
 
 function drawChart(data) {
@@ -54,10 +56,7 @@ function drawChart(data) {
   function getRect(d) {
     const el = d3.select(this);
     const sx = x(new Date(d.StartDate));
-    const w = x(new Date(d.EndDate)) - x(new Date(d.StartDate));
-    // Put label on the side with more space.
-    const isLabelLeft = sx > width - (sx+w)
-    console.log(d.Title, sx, w, isLabelLeft)
+    let w = x(new Date(d.EndDate)) - x(new Date(d.StartDate));
 
     el.style("cursor", "pointer")
 
@@ -68,6 +67,20 @@ function drawChart(data) {
       .attr("width", w)
       .attr("fill", d.color);
 
+    if (d.ReleasedVideo != null) {
+      let xvid = x(new Date(d.ReleasedVideo.Date))
+      w += xvid - x(new Date(d.EndDate)) + 10
+      el
+        .append("circle")
+        .attr("cx", xvid)
+        .attr("cy", y.bandwidth() / 2)
+        .attr("r", y.bandwidth() / 5)
+        .attr("fill", d.color)
+    }
+
+    // Put label on the side with more space.
+    const isLabelLeft = sx > width - (sx+w)
+
     el
       .append("text")
       .text(d.Title)
@@ -76,6 +89,7 @@ function drawChart(data) {
       .attr("fill", "currentColor")
       .style("text-anchor", isLabelLeft ? "end" : "start")
       .style("dominant-baseline", "hanging");
+
   }
 
   projects.forEach(d => d.color = d3.color(color(d.Organizer)))

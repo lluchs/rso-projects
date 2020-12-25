@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"os"
@@ -57,7 +58,7 @@ func instrumentsByRegister(instruments []Instrument) map[string][]Instrument {
 }
 
 func createHTMLPage(client *DataClient) {
-	var projects []Project
+	var allProjects, activeProjects []Project
 
 	// Find projects.
 	for _, post := range client.Posts {
@@ -65,8 +66,7 @@ func createHTMLPage(client *DataClient) {
 			continue
 		}
 		deadline := findDeadline(post.SelfText, int64(post.CreatedUTC))
-		// Filter out finished projects.
-		if time.Now().After(deadline) {
+		if deadline.IsZero() {
 			continue
 		}
 		byreg := instrumentsByRegister(findInstruments(post.SelfText))
@@ -102,10 +102,15 @@ func createHTMLPage(client *DataClient) {
 				p.LastUpdateDate = fmt.Sprintf("%d days ago", int(diff))
 			}
 		}
-		projects = append(projects, p)
+		allProjects = append(allProjects, p)
+		// Separate list with only active projects.
+		if !time.Now().After(deadline) {
+			activeProjects = append(activeProjects, p)
+		}
 	}
 
-	sort.Sort(ProjectsByEndDate(projects))
+	sort.Sort(ProjectsByEndDate(allProjects))
+	sort.Sort(ProjectsByEndDate(activeProjects))
 
 	// Find videos.
 	v := &client.Videos[len(client.Videos)-1]
@@ -137,18 +142,35 @@ func createHTMLPage(client *DataClient) {
 		return
 	}
 
-	f, err := os.Create("static/index.html")
+	data := map[string]interface{}{
+		"Projects":    allProjects,
+		"LatestVideo": latestVideo,
+		"VideoCount":  len(client.Videos),
+		"News":        news[0:5],
+	}
+
+	jf, err := os.Create("static/projects.json")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer jf.Close()
 
-	err = tmpl.Execute(f, map[string]interface{}{
-		"Projects":    projects,
-		"LatestVideo": latestVideo,
-		"VideoCount":  len(client.Videos),
-		"News":        news[0:5],
-	})
+	encoder := json.NewEncoder(jf)
+	if err = encoder.Encode(data); err != nil {
+		fmt.Println(fmt.Errorf("couldn't encode projects.json: %w", err))
+		return
+	}
+
+	hf, err := os.Create("static/index.html")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer hf.Close()
+
+	data["Projects"] = activeProjects
+	err = tmpl.Execute(hf, data)
 	if err != nil {
 		fmt.Println(err)
 		return

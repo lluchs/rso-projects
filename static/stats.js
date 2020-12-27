@@ -95,70 +95,84 @@ function drawChart(projects) {
 
   }
 
-  projects.forEach(d => d.color = d3.color(color(d.Organizer)))
+  // already rendered?
+  if (parent.select("svg").empty()) {
 
-  const svg = parent.append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", `0,0,${width},${height}`)
+    projects.forEach(d => d.color = d3.color(color(d.Organizer)))
 
-  const g = svg.append("g").attr("transform", (d,i)=>`translate(${margin.left} ${margin.top})`);
+    const svg = parent.append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", `0,0,${width},${height}`)
 
-  const groups = g
-    .selectAll("g")
-    .data(projects)
-    .enter()
-    .append("g")
-    .attr("class", "project")
+    const g = svg.append("g").attr("transform", (d,i)=>`translate(${margin.left} ${margin.top})`);
+
+    const groups = g
+      .selectAll("g")
+      .data(projects)
+      .enter()
+      .append("g")
+      .attr("class", "project")
 
 
-  const tooltip = d3.select(document.createElement("div")).call(createTooltip);
+    const tooltip = d3.select(document.createElement("div")).call(createTooltip);
 
-  const line = svg.append("line").attr("y1", margin.top-10).attr("y2", height-margin.bottom).attr("stroke", "rgba(129,210,199,0.7)").style("pointer-events","none");
+    const line = svg.append("line").attr("y1", margin.top-10).attr("y2", height-margin.bottom).attr("stroke", "rgba(129,210,199,0.7)").style("pointer-events","none");
 
-  groups.attr("transform", (d,i)=>`translate(0 ${y(i)})`)
+    groups.attr("transform", (d,i)=>`translate(0 ${y(i)})`)
 
-  groups
-    .each(getRect)
-    .on("mouseover", function(event, d) {
-      d3.select(this).selectAll("rect, circle").attr("fill", d.color.darker())
+    groups
+      .each(getRect)
+      .on("mouseover", function(event, d) {
+        d3.select(this).selectAll("rect, circle").attr("fill", d.color.darker())
+
+        tooltip
+          .style("opacity", 1)
+          .html(getTooltipContent(d))
+      })
+      .on("mouseleave", function(event, d) {
+        d3.select(this).selectAll("rect, circle").attr("fill", d.color)
+        tooltip.style("opacity", 0)
+      })
+
+
+    svg
+      .append("g")
+      .attr("transform", (d,i)=>`translate(${margin.left} ${margin.top-10})`)
+      .call(axisTop)
+
+    svg
+      .append("g")
+      .attr("transform", (d,i)=>`translate(${margin.left} ${height-margin.bottom})`)
+      .call(axisBottom)
+
+
+
+    svg.on("mousemove", function(event) {
+
+      let [x,y] = d3.pointer(event);
+      line.attr("transform", `translate(${x} 0)`);
+      y +=20;
+      if(x>width/2) x-= 100;
 
       tooltip
-        .style("opacity", 1)
-        .html(getTooltipContent(d))
-    })
-    .on("mouseleave", function(event, d) {
-      d3.select(this).selectAll("rect, circle").attr("fill", d.color)
-      tooltip.style("opacity", 0)
+        .style("left", x + "px")
+        .style("top", y + "px")
     })
 
+    parent.node().appendChild(svg.node());
+    parent.node().appendChild(tooltip.node());
 
-  svg
-    .append("g")
-    .attr("transform", (d,i)=>`translate(${margin.left} ${margin.top-10})`)
-    .call(axisTop)
+  } else {
+    // update order
+    let prjs = parent.selectAll(".project")
 
-  svg
-    .append("g")
-    .attr("transform", (d,i)=>`translate(${margin.left} ${height-margin.bottom})`)
-    .call(axisBottom)
+    prjs.data(projects, p => p.Title)
+      .transition()
+      .ease(d3.easeCubic)
+      .attr("transform", (d, i) => `translate(0 ${y(i)})`)
 
-
-
-  svg.on("mousemove", function(event) {
-
-    let [x,y] = d3.pointer(event);
-    line.attr("transform", `translate(${x} 0)`);
-    y +=20;
-    if(x>width/2) x-= 100;
-
-    tooltip
-      .style("left", x + "px")
-      .style("top", y + "px")
-  })
-
-  parent.node().appendChild(svg.node());
-  parent.node().appendChild(tooltip.node());
+  }
 
 }
 
@@ -209,8 +223,18 @@ async function main() {
   let projects = data.Projects.concat(sheetProjects)
   projects.sort((a, b) => d3.ascending(a.EndDate, b.EndDate))
 
-  //drawChart(projects.Projects)
+  window.projects = projects
   drawChart(projects)
+
+  d3.select("#timeline-sortby").on("change", event => {
+    let by = event.target.value
+    let key = by == 'deadline'  ? (p => p.EndDate) :
+              by == 'video'     ? (p => p.ReleasedVideo?.Date ?? 'z'+p.EndDate) :
+              by == 'organizer' ? (p => p.Organizer) :
+              console.error("wrong sorby value", by)
+    projects.sort((a, b) => d3.ascending(key(a), key(b)))
+    drawChart(projects)
+  })
 }
 
 main()

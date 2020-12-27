@@ -13,7 +13,13 @@
 		<h1>RSO Project Timeline</h1>
 		<p>Bars denote the submission period and link to the reddit post for recent projects. Dots show the video release and link to YouTube.</p>
 		<p>
-			<label><input type="checkbox" id="timeline-showold"> Show old projects</label>
+			<label><input type="checkbox" id="timeline-showold"> Show old projects</label><br>
+			<b>Sort by</b>
+			<select id="timeline-sortby">
+				<option value="deadline">Deadline</option>
+				<option value="video">Video release</option>
+				<option value="organizer">Organizer</option>
+			</select>
 		</p>
 		<div id="timeline" style="position: relative"></div>
 		<div style="height: 5em;"></div>

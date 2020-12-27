@@ -50,7 +50,7 @@ function drawChart(projects) {
   const axisTop = d3.axisTop(x)
     .tickPadding(2)
 
-  const color = d3.scaleOrdinal(d3.schemeSet3).domain(projects.map(p => p.Organizer))
+  const color = d3.scaleOrdinal(d3.schemeSet3).domain(projects.map(p => p.Organizer.toLowerCase()))
 
   function getRect(d) {
     const el = d3.select(this);
@@ -104,7 +104,7 @@ function drawChart(projects) {
   // already rendered?
   if (parent.select("svg").empty()) {
 
-    projects.forEach(d => d.color = d3.color(color(d.Organizer)))
+    projects.forEach(d => d.color = d3.color(color(d.Organizer.toLowerCase())))
 
     const svg = parent.append("svg")
       .attr("width", width)
@@ -198,7 +198,6 @@ async function main() {
   let [data, sheet] = await Promise.all([d3.json("projects.json"), d3.csv("allprojects.csv")])
 
   let videosById = new Map(data.Videos.map(v => [v.contentDetails.videoId, v]))
-  let projectsByVideoId = new Map(data.Projects.map(p => [p.ReleasedVideo?.ID, p]).filter(([k, v]) => k != null))
 
   let sheetProjects = sheet
     .map(p => ({
@@ -223,8 +222,19 @@ async function main() {
       })(p['Links to Active Project Page OR Finished Result']),
     }))
     .filter(p => p.StartDate != null && p.EndDate != null && p.ReleasedVideo != null)
-    // filter out projects we already know from Reddit posts
-    .filter(p => !projectsByVideoId.get(p.ReleasedVideo.ID))
+
+  // try to add video links by matching the organizer + start date
+  let toidx = p => `${p.Organizer.toLowerCase()} - ${p.StartDate}`
+  let sheetProjectsIndex = new Map(sheetProjects.map(p => [toidx(p), p]))
+  data.Projects.forEach(p => {
+    let sp
+    if (!p.ReleasedVideo && (sp = sheetProjectsIndex.get(toidx(p)))) {
+      p.ReleasedVideo = sp.ReleasedVideo
+    }
+  })
+  // filter out projects we already know from Reddit posts
+  let projectsByVideoId = new Map(data.Projects.map(p => [p.ReleasedVideo?.ID, p]).filter(([k, v]) => k != null))
+  sheetProjects = sheetProjects.filter(p => !projectsByVideoId.get(p.ReleasedVideo.ID))
 
   const allProjects = data.Projects.concat(sheetProjects)
   allProjects.sort((a, b) => d3.ascending(a.EndDate, b.EndDate))
@@ -235,7 +245,7 @@ async function main() {
     let by = d3.select("#timeline-sortby").node().value
     let key = by == 'deadline'  ? (p => p.EndDate) :
               by == 'video'     ? (p => p.ReleasedVideo?.Date ?? 'z'+p.EndDate) :
-              by == 'organizer' ? (p => p.Organizer) :
+              by == 'organizer' ? (p => p.Organizer.toLowerCase()) :
               console.error("wrong sorby value", by)
     projects.sort((a, b) => d3.ascending(key(a), key(b)))
     drawChart(projects)

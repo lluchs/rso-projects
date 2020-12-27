@@ -28,9 +28,8 @@ Release: ${d.ReleasedVideo.Date.replace(/T.*/, '')}
 ` : "")
 }
 
-function drawChart(data) {
-  let projects = data.Projects
-  const parent = d3.select("#chart");
+function drawChart(projects) {
+  const parent = d3.select("#timeline");
 
   const width = parent.node().clientWidth
   const height = 50 + 30*projects.length
@@ -61,21 +60,25 @@ function drawChart(data) {
     el.style("cursor", "pointer")
 
     el
-      .append("rect")
-      .attr("x", sx)
-      .attr("height", y.bandwidth())
-      .attr("width", w)
-      .attr("fill", d.color);
+      .append("a")
+        .attr("href", d.URL)
+        .append("rect")
+          .attr("x", sx)
+          .attr("height", y.bandwidth())
+          .attr("width", w)
+          .attr("fill", d.color);
 
     if (d.ReleasedVideo != null) {
       let xvid = x(new Date(d.ReleasedVideo.Date))
       w += xvid - x(new Date(d.EndDate)) + 10
       el
-        .append("circle")
-        .attr("cx", xvid)
-        .attr("cy", y.bandwidth() / 2)
-        .attr("r", y.bandwidth() / 5)
-        .attr("fill", d.color)
+        .append("a")
+          .attr("href", `https://youtu.be/${d.ReleasedVideo.ID}`)
+          .append("circle")
+            .attr("cx", xvid)
+            .attr("cy", y.bandwidth() / 2)
+            .attr("r", y.bandwidth() / 5)
+            .attr("fill", d.color)
     }
 
     // Put label on the side with more space.
@@ -83,7 +86,7 @@ function drawChart(data) {
 
     el
       .append("text")
-      .text(d.Title)
+      .text(d.Title.replace(/\([^)]+\)/, ''))
       .attr("x", isLabelLeft ? sx-5 : sx+w+5)
       .attr("y", 2.5)
       .attr("fill", "currentColor")
@@ -118,14 +121,14 @@ function drawChart(data) {
   groups
     .each(getRect)
     .on("mouseover", function(event, d) {
-      d3.select(this).select("rect").attr("fill", d.color.darker())
+      d3.select(this).selectAll("rect, circle").attr("fill", d.color.darker())
 
       tooltip
         .style("opacity", 1)
         .html(getTooltipContent(d))
     })
     .on("mouseleave", function(event, d) {
-      d3.select(this).select("rect").attr("fill", d.color)
+      d3.select(this).selectAll("rect, circle").attr("fill", d.color)
       tooltip.style("opacity", 0)
     })
 
@@ -159,4 +162,55 @@ function drawChart(data) {
 
 }
 
-d3.json("projects.json").then(drawChart)
+// sheetDate converts a date like "October 9th, 2020" to ISO 8601.
+function sheetDate(d) {
+  const parse = d3.utcParse("%B %d %Y")
+  let parsed = parse(d.replace(/([0-9])([a-z]{2})?,\s*/, '$1 ')
+                .replace(/\s*\(EXT\)/, ''))
+  if (parsed == null) {
+    console.info(`invalid date: ${d}`)
+    return null
+  }
+  return parsed.toISOString().replace(/T.*/, '')
+}
+
+async function main() {
+  let [data, sheet] = await Promise.all([d3.json("projects.json"), d3.csv("allprojects.csv")])
+
+  let videosById = new Map(data.Videos.map(v => [v.contentDetails.videoId, v]))
+  let projectsByVideoId = new Map(data.Projects.map(p => [p.ReleasedVideo?.ID, p]).filter(([k, v]) => k != null))
+
+  let sheetProjects = sheet
+    .map(p => ({
+      FromSheet: true,
+      Title: p['Project Name'],
+      Organizer: p['Creator'].replace('The Reddit Symphony Orchestra', 'CasuallyNothing').replace(/u\/| .*/g, ''),
+      StartDate: sheetDate(p['Start Date']),
+      EndDate: sheetDate(p['Deadline']),
+      ReleasedVideo: (url => {
+        let m = /(youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/.exec(url)
+        if (m == null) return null
+        let v = videosById.get(m[2])
+        if (v == null) {
+          console.info(`video https://youtu.be/${m[2]} for ${p['Project Name']} not in playlist`)
+          return null
+        }
+        return {
+          Title: v.snippet.title,
+          ID: v.contentDetails.videoId,
+          Date: v.contentDetails.videoPublishedAt,
+        }
+      })(p['Links to Active Project Page OR Finished Result']),
+    }))
+    .filter(p => p.StartDate != null && p.EndDate != null && p.ReleasedVideo != null)
+    // filter out projects we already know from Reddit posts
+    .filter(p => !projectsByVideoId.get(p.ReleasedVideo.ID))
+
+  let projects = data.Projects.concat(sheetProjects)
+  projects.sort((a, b) => d3.ascending(a.EndDate, b.EndDate))
+
+  //drawChart(projects.Projects)
+  drawChart(projects)
+}
+
+main()

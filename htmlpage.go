@@ -37,11 +37,11 @@ type Video struct {
 	Date  string // ISO 8601
 }
 
-func videoFromYT(v *youtube.PlaylistItemSnippet) Video {
+func videoFromYT(v *youtube.PlaylistItem) Video {
 	return Video{
-		Title: v.Title,
-		ID:    v.ResourceId.VideoId,
-		Date:  v.PublishedAt,
+		Title: v.Snippet.Title,
+		ID:    v.ContentDetails.VideoId,
+		Date:  v.ContentDetails.VideoPublishedAt,
 	}
 }
 
@@ -159,6 +159,7 @@ func createHTMLPage(client *DataClient) {
 		"Projects":    allProjects,
 		"LatestVideo": latestVideo,
 		"VideoCount":  len(client.Videos),
+		"Videos":      client.Videos,
 		"News":        news[0:5],
 	}
 

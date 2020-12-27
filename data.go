@@ -22,7 +22,7 @@ type DataClient struct {
 
 	Posts         []reddit.Post
 	WeeklyUpdates []reddit.Comment
-	Videos        []youtube.PlaylistItemSnippet
+	Videos        []youtube.PlaylistItem
 }
 
 // NewDataClient creates a new, unitialized client.
@@ -119,11 +119,11 @@ func (c *DataClient) FetchWeeklyUpdates() error {
 
 // FetchVideos fetches the latest videos from YouTube.
 func (c *DataClient) FetchVideos() error {
-	var videos []youtube.PlaylistItemSnippet
-	call := c.youtube.PlaylistItems.List([]string{"snippet"}).PlaylistId(rsoPlaylistID).MaxResults(50)
+	var videos []youtube.PlaylistItem
+	call := c.youtube.PlaylistItems.List([]string{"snippet", "contentDetails"}).PlaylistId(rsoPlaylistID).MaxResults(50)
 	err := call.Pages(context.TODO(), func(res *youtube.PlaylistItemListResponse) error {
 		for _, item := range res.Items {
-			videos = append(videos, *item.Snippet)
+			videos = append(videos, *item)
 		}
 		return nil
 	})
@@ -131,7 +131,9 @@ func (c *DataClient) FetchVideos() error {
 		return err
 	}
 
-	sort.Slice(videos, func(i, j int) bool { return videos[i].PublishedAt < videos[j].PublishedAt })
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[i].ContentDetails.VideoPublishedAt < videos[j].ContentDetails.VideoPublishedAt
+	})
 
 	c.Videos = videos
 

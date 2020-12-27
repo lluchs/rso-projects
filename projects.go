@@ -140,13 +140,13 @@ func lcs(s1 string, s2 string) string {
 }
 
 // findMatchingVideo finds the release video for a post.
-func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItemSnippet) *youtube.PlaylistItemSnippet {
+func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItem) *youtube.PlaylistItem {
 	postTitle := withoutSimilarityBadwords(post.Title)
 	var bestVideo int
 	var lcstr string
 
 	for i, v := range videos {
-		videoTitle := withoutSimilarityBadwords(v.Title)
+		videoTitle := withoutSimilarityBadwords(v.Snippet.Title)
 		l := lcs(videoTitle, postTitle)
 		if len(l) > len(lcstr) {
 			bestVideo = i

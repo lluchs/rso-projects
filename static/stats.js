@@ -95,6 +95,12 @@ function drawChart(projects) {
 
   }
 
+  // filter change? -> we might need to re-render
+  // TODO: make this nicer?
+  if (parent.selectAll(".project").size() != projects.length) {
+    parent.select("svg").remove()
+  }
+
   // already rendered?
   if (parent.select("svg").empty()) {
 
@@ -220,21 +226,33 @@ async function main() {
     // filter out projects we already know from Reddit posts
     .filter(p => !projectsByVideoId.get(p.ReleasedVideo.ID))
 
-  let projects = data.Projects.concat(sheetProjects)
-  projects.sort((a, b) => d3.ascending(a.EndDate, b.EndDate))
+  const allProjects = data.Projects.concat(sheetProjects)
+  allProjects.sort((a, b) => d3.ascending(a.EndDate, b.EndDate))
 
-  window.projects = projects
-  drawChart(projects)
+  let projects
 
-  d3.select("#timeline-sortby").on("change", event => {
-    let by = event.target.value
+  const applySort = () => {
+    let by = d3.select("#timeline-sortby").node().value
     let key = by == 'deadline'  ? (p => p.EndDate) :
               by == 'video'     ? (p => p.ReleasedVideo?.Date ?? 'z'+p.EndDate) :
               by == 'organizer' ? (p => p.Organizer) :
               console.error("wrong sorby value", by)
     projects.sort((a, b) => d3.ascending(key(a), key(b)))
     drawChart(projects)
-  })
+  }
+
+  d3.select("#timeline-sortby").on("change", applySort)
+
+  const applyFilter = () => {
+    if (d3.select("#timeline-showold").node().checked)
+      projects = allProjects
+    else
+      projects = allProjects.filter(p => !p.FromSheet)
+    applySort()
+  }
+  applyFilter()
+  d3.select("#timeline-showold").on("change", applyFilter)
+
 }
 
 main()

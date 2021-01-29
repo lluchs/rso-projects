@@ -121,7 +121,7 @@ func createHTMLPage(client *DataClient) {
 		}
 		allProjects = append(allProjects, p)
 		// Separate list with only active projects.
-		if !time.Now().After(deadline) {
+		if time.Now().Sub(deadline).Hours() < 24+12 {
 			activeProjects = append(activeProjects, p)
 		}
 	}

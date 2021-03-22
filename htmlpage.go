@@ -23,6 +23,7 @@ type Project struct {
 	Registers             []string // sorted nicely
 	InstrumentsByRegister map[string][]Instrument
 	IsOpenInstrumentation bool
+	Tags                  []string
 
 	LastUpdateDate      string
 	LastUpdatePermalink string

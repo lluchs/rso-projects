@@ -115,6 +115,8 @@ main {
 	border-left: 0.5em solid var(--rso-light-blue);
 	padding-left: 1em;
 	margin-bottom: 2em;
+
+	--tag-margin: 0.5em;
 }
 
 .project-row.official {
@@ -128,6 +130,27 @@ main {
 .project-row > .instruments > .attrname {
 	font-weight: bold;
 	margin-right: 1em;
+}
+
+.project-row > h3 > a {
+	margin-right: var(--tag-margin);
+}
+
+.tag-list {
+	font-weight: normal;
+	font-size: 1rem;
+}
+
+.tag-list .tag {
+	display: inline-block;
+	margin-right: var(--tag-margin);
+	padding: 0.1em 0.3em;
+	background-color: var(--rso-medium-blue);
+}
+
+.tag-list .tag.official {
+	background-color: var(--official-color);
+	color: var(--rso-dark-blue);
 }
 
 .project-attributes {

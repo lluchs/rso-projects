@@ -66,7 +66,13 @@
 			<h2>Ongoing Projects</h2>
 			{{range .Projects}}
 			<div class="project-row {{if .IsOfficial}}official{{end}}">
-				<h3><a href="{{.URL}}">{{.Title}}</a></h3>
+				<h3>
+					<a href="{{.URL}}">{{.Title}}</a>
+					<span class="tag-list">
+						{{if .IsOfficial}}<span class="tag official">Offical</span>{{end}}
+						{{range .Tags}}<span class="tag">{{.}}</span>{{end}}
+					</span>
+				</h3>
 				<div class="project-attributes">
 					<div class="attr organizer">
 						<div class="attrname">Organizer</div>

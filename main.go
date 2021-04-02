@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"os"
 	"time"
 
@@ -75,9 +76,11 @@ func writePrometheusStats(client *DataClient) error {
 // next page with &count=100&after=xyz
 
 var cachedFlag = flag.Bool("cached", false, "use cached data")
+var throwbackFlag = flag.Bool("throwback", false, "post throwback link")
 
 func main() {
 	flag.Parse()
+	rand.Seed(time.Now().UnixNano())
 
 	client := NewDataClient()
 
@@ -110,6 +113,12 @@ func main() {
 	//printProjects(&search)
 	//printGanttChartData(&search)
 	createHTMLPage(client)
+
+	if *throwbackFlag {
+		if err = postThrowback(client); err != nil {
+			fmt.Printf("failed posting throwback: %s\n", err)
+		}
+	}
 
 	if err = writePrometheusStats(client); err != nil {
 		fmt.Printf("failed writing stats: %s\n", err)

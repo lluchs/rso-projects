@@ -1,0 +1,22 @@
+image: archlinux
+packages:
+  - go
+  - rsync
+secrets:
+  - 811f96d3-6fa9-4ade-9b97-706a5300951f # deploy key
+environment:
+  SSH_KEY: 811f96d3-6fa9-4ade-9b97-706a5300951f
+  HOST: rso-projects@lwrl.de
+sources:
+  - https://github.com/lluchs/rso-projects
+
+tasks:
+  - build: |
+      cd rso-projects
+      go build
+      [[ "$GITHUB_REF" = refs/heads/master ]] || complete-build
+  - deploy: |
+      cd rso-projects
+      sshopts="ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/$SSH_KEY"
+      rsync --rsh="$sshopts" -rv rso-projects template.html static $HOST:~/
+      $sshopts $HOST systemctl --user start rso-projects

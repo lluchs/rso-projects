@@ -107,6 +107,27 @@ func findUpdateComment(post *reddit.Post, updates []reddit.Comment) *reddit.Comm
 	return nil
 }
 
+// ProjectTag is a tag attached to a project depending on keywords in the post.
+type ProjectTag struct {
+	Name  string
+	regex *regexp.Regexp
+}
+
+var projectTags = []ProjectTag{
+	ProjectTag{"beginner-friendly", regexp.MustCompile(`(?i)\*\*beginner-friendly\*\*`)},
+}
+
+// findProjectTags scans the markdown text for tags.
+func findProjectTags(text string) []string {
+	var result []string
+	for _, tag := range projectTags {
+		if tag.regex.FindString(text) != "" {
+			result = append(result, tag.Name)
+		}
+	}
+	return result
+}
+
 // Video matching support
 
 var similarityBadwordRegex *regexp.Regexp = regexp.MustCompile(`(?i)(/?r/)?theredditsymphony|rso|community|project|performed by|composition|symphonic movement|orchestra`)
@@ -146,6 +167,7 @@ func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItem) *youtub
 	var lcstr string
 
 	for i, v := range videos {
+		// TODO: Filter out videos published before the project's deadline
 		videoTitle := withoutSimilarityBadwords(v.Snippet.Title)
 		l := lcs(videoTitle, postTitle)
 		if len(l) > len(lcstr) {

@@ -100,6 +100,7 @@ func createHTMLPage(client *DataClient) {
 			Registers:             registers,
 			InstrumentsByRegister: byreg,
 			IsOpenInstrumentation: isOpenInstrumentation(post.SelfText),
+			Tags:                  findProjectTags(post.SelfText),
 		}
 		if lastUpdate := findUpdateComment(&post, client.WeeklyUpdates); lastUpdate != nil {
 			p.LastUpdatePermalink = lastUpdate.Permalink

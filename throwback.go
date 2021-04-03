@@ -21,6 +21,12 @@ func postThrowback(client *DataClient) error {
 	if err != nil {
 		return err
 	}
+
+	prevPostTime := time.Unix(int64(posts[0].CreatedUTC), 0)
+	if prevPostTime.AddDate(0, 0, 6).After(time.Now()) {
+		return fmt.Errorf("previous throwback post too young (%s)", prevPostTime.Format(time.RFC3339))
+	}
+
 	video, err := chooseThrowbackVideo(client.Videos, posts)
 	if err != nil {
 		return fmt.Errorf("couldn't choose video: %w", err)

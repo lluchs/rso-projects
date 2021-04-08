@@ -64,6 +64,10 @@ CHOOSE:
 	for i := 0; i < len(videos)/2; i++ {
 		v = videos[rand.Intn(len(videos))]
 
+		// Skip private videos.
+		if v.ContentDetails.VideoPublishedAt == "" {
+			continue
+		}
 		// No new videos published in the previous month
 		publishedAt, err := time.Parse(time.RFC3339, v.ContentDetails.VideoPublishedAt)
 		if err != nil {

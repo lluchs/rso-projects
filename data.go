@@ -7,6 +7,9 @@ import (
 	"os"
 	"sort"
 	"time"
+	"net/http"
+	"io"
+	"strings"
 
 	"github.com/turnage/graw/reddit"
 	"google.golang.org/api/option"
@@ -14,6 +17,7 @@ import (
 )
 
 var rsoPlaylistID = "PLAl3fvW4KndiZAQtPmFCUFD6nImDC89Gv"
+var allProjectsDoc = "12njIGc2_G4uMJ8uvfq1uKvdFfzopRYdhCdRdfo3e7Hg"
 
 // DataClient fetches RSO posts and comments from reddit and videos from  YouTube.
 type DataClient struct {
@@ -138,6 +142,41 @@ func (c *DataClient) FetchVideos() error {
 	c.Videos = videos
 
 	return writeToCache("videos.json", videos)
+}
+
+// FetchAllProjectsSheet fetches a CSV of the "All Projects" Google Sheet.
+func (c *DataClient) FetchAllProjectsSheet()  error {
+	resp, err := http.Get("https://docs.google.com/spreadsheets/d/"+allProjectsDoc+"/gviz/tq?tqx=out:csv")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("reading sheets CSV failed: %w", err)
+	}
+
+	// Remove lines before the main table.
+	lines := strings.Split(string(body), "\n")
+	i := 0
+	for !strings.Contains(lines[i], "Project Name") {
+		i++
+	}
+	csv := strings.Join(lines[i:], "\n")
+
+	fname := "static/allprojects.tmp"
+	f, err := os.Create(fname)
+	if err != nil {
+		return fmt.Errorf("couldn't create %s: %w", fname, err)
+	}
+	defer f.Close()
+
+	if _, err = io.WriteString(f, csv); err != nil {
+		return fmt.Errorf("couldn't write %s: %w", fname, err)
+	}
+
+	return os.Rename(fname, "static/allprojects.csv")
 }
 
 func writeToCache(name string, data interface{}) error {

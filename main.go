@@ -108,6 +108,10 @@ func main() {
 			fmt.Printf("couldn't fetch videos: %s\n", err)
 			return
 		}
+		if err = client.FetchAllProjectsSheet(); err != nil {
+			fmt.Printf("couldn't fetch all projects sheet: %s\n", err)
+			return
+		}
 	}
 
 	//printProjects(&search)

@@ -81,11 +81,9 @@ data is also written to `static/projects.json`.
 
 [gotmpl]: https://golang.org/pkg/text/template/
 
-The stats page uses a CSV export of the [all projects sheet][allpr] to show
-older projects as well. This file is currently not downloaded automatically.
-Fetch it from [here][csv], remove the rows before the table (so that the
-header row is the first line of the file), and save to
-`static/allprojects.csv`.
+The stats page uses a CSV export of the [all projects sheet][allpr] to
+associate videos and to show older projects as well. It is fetched from
+[this URL][csv] as the Google Sheets API is horrible.
 
 [allpr]: https://docs.google.com/spreadsheets/d/12njIGc2_G4uMJ8uvfq1uKvdFfzopRYdhCdRdfo3e7Hg/edit?usp=sharing
 [csv]: https://docs.google.com/spreadsheets/d/12njIGc2_G4uMJ8uvfq1uKvdFfzopRYdhCdRdfo3e7Hg/gviz/tq?tqx=out:csv

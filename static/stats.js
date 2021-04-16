@@ -185,13 +185,22 @@ function drawChart(projects) {
 // sheetDate converts a date like "October 9th, 2020" to ISO 8601.
 function sheetDate(d) {
   const parse = d3.utcParse("%B %d %Y")
-  let parsed = parse(d.replace(/([0-9])([a-z]{2})?,\s*/, '$1 ')
-                .replace(/\s*\(EXT\)/, ''))
+  let normalized = d.replace(/([0-9])([a-z]{2})?,\s*/, '$1 ')
+                .replace(/\s*\(EXT\)/, '')
+                .trim()
+  let parsed = parse(normalized)
   if (parsed == null) {
-    console.info(`invalid date: ${d}`)
+    console.info(`invalid date: ${d} (${normalized})`)
     return null
   }
   return parsed.toISOString().replace(/T.*/, '')
+}
+
+// dayBefore takes an ISO8601 date and returns the date of the day before.
+function dayBefore(d) {
+  let date = new Date(d)
+  let before = new Date(date.getTime() - 24 * 60 * 60 * 1000)
+  return before.toISOString().slice(0, 10)
 }
 
 async function main() {
@@ -225,10 +234,12 @@ async function main() {
 
   // try to add video links by matching the organizer + start date
   let toidx = p => `${p.Organizer.toLowerCase()} - ${p.StartDate}`
+  // hack: due to time zone issues, the start date is sometimes off-by-one
+  let toidx2 = p => `${p.Organizer.toLowerCase()} - ${dayBefore(p.StartDate)}`
   let sheetProjectsIndex = new Map(sheetProjects.map(p => [toidx(p), p]))
   data.Projects.forEach(p => {
     let sp
-    if (!p.ReleasedVideo && (sp = sheetProjectsIndex.get(toidx(p)))) {
+    if ((sp = sheetProjectsIndex.get(toidx(p))) || (sp = sheetProjectsIndex.get(toidx2(p)))) {
       p.ReleasedVideo = sp.ReleasedVideo
     }
   })

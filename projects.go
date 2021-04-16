@@ -161,13 +161,18 @@ func lcs(s1 string, s2 string) string {
 }
 
 // findMatchingVideo finds the release video for a post.
-func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItem) *youtube.PlaylistItem {
+func findMatchingVideo(post *reddit.Post, videos []youtube.PlaylistItem, deadline time.Time) *youtube.PlaylistItem {
 	postTitle := withoutSimilarityBadwords(post.Title)
 	var bestVideo int
 	var lcstr string
 
 	for i, v := range videos {
-		// TODO: Filter out videos published before the project's deadline
+		// Filter out videos published before the project's deadline.
+		videoPublishedAt, err := time.Parse(time.RFC3339, v.ContentDetails.VideoPublishedAt)
+		if err != nil || videoPublishedAt.Before(deadline) {
+			continue
+		}
+
 		videoTitle := withoutSimilarityBadwords(v.Snippet.Title)
 		l := lcs(videoTitle, postTitle)
 		if len(l) > len(lcstr) {

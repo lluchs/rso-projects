@@ -117,7 +117,7 @@ func createHTMLPage(client *DataClient) {
 				p.LastUpdateDate = fmt.Sprintf("%d days ago", int(diff))
 			}
 		}
-		if video := findMatchingVideo(&post, client.Videos); video != nil {
+		if video := findMatchingVideo(&post, client.Videos, deadline); video != nil {
 			v := videoFromYT(video)
 			p.ReleasedVideo = &v
 		}

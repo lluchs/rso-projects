@@ -28,12 +28,26 @@ Release: ${d.ReleasedVideo.Date.replace(/T.*/, '')}
 ` : "")
 }
 
+// countActiveAtDate returns the number of active projects at the given date.
+// date is a ISO 8601 date string.
+function countActiveAtDate(projects, date) {
+  // TODO: Might be more efficient to sort projects?
+  let count = 0
+  for (let p of projects) {
+    if (p.StartDate <= date && date <= p.EndDate)
+      count++
+  }
+  return count
+}
+
 function drawChart(projects) {
   const parent = d3.select("#timeline");
 
-  const width = parent.node().clientWidth
-  const height = 50 + 30*projects.length
   const margin = ({top: 30, right: 30, bottom: 30, left: 30})
+  const width = parent.node().clientWidth
+  const heightProjects = 50 + 30*projects.length
+  const heightCount = 200
+  const height = heightProjects + heightCount + 2*margin.bottom
 
   const x = d3.scaleTime()
     .domain([d3.min(projects, d => d.StartDate), d3.max(projects, d => d.EndDate)].map(d => new Date(d)))
@@ -41,7 +55,7 @@ function drawChart(projects) {
 
   const y = d3.scaleBand()
       .domain(d3.range(projects.length))
-      .range([0,height - margin.bottom - margin.top])
+      .range([0, heightProjects - margin.bottom - margin.top])
       .padding(0.2)
 
   const axisBottom = d3.axisBottom(x)
@@ -149,9 +163,55 @@ function drawChart(projects) {
 
     svg
       .append("g")
-      .attr("transform", (d,i)=>`translate(${margin.left} ${height-margin.bottom})`)
+      .attr("transform", (d,i)=>`translate(${margin.left} ${heightProjects-margin.bottom})`)
       .call(axisBottom)
 
+
+    let yCount = d3.scaleLinear().domain([0, 16]).range([heightCount, 0])
+    let axisLeftCount = d3.axisLeft(yCount).tickPadding(2)
+    let lineCount = d3.line()
+          .x(x)
+          .y(d => yCount(countActiveAtDate(projects, toISODateString(d))))
+    let gCount = svg
+      .append("g")
+      .attr("transform", (d,i)=>`translate(${margin.left} ${heightProjects+margin.bottom})`)
+
+    gCount
+      .append("path")
+        .attr("fill", "none")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("stroke", "#81d2c7")
+        .attr("d", d => lineCount(x.ticks(100)))
+
+    gCount
+      .append("g")
+      .call(axisLeftCount)
+
+    gCount
+      .append("g")
+      .attr("transform", (d,i)=>`translate(0 ${heightCount})`)
+      .call(axisBottom)
+
+    gCount
+      .append("rect")
+        .attr("width", width - margin.right)
+        .attr("height", heightCount + margin.bottom)
+        .attr("fill", "transparent")
+        .on("mousemove", function(event) {
+          let [xc,yc] = d3.pointer(event);
+          if (xc > margin.left) {
+            let date = toISODateString(x.invert(xc))
+            let count = countActiveAtDate(projects, date)
+            tooltip
+              .style("opacity", 1)
+              .html(`<strong>${date}</strong>: ${count} active project${count == 1 ? '' : 's'}`)
+          }
+        })
+        .on("mouseleave", function(event) {
+            tooltip.style("opacity", 0)
+        })
 
 
     svg.on("mousemove", function(event) {
@@ -193,14 +253,19 @@ function sheetDate(d) {
     console.info(`invalid date: ${d} (${normalized})`)
     return null
   }
-  return parsed.toISOString().replace(/T.*/, '')
+  return toISODateString(parsed)
 }
 
 // dayBefore takes an ISO8601 date and returns the date of the day before.
 function dayBefore(d) {
   let date = new Date(d)
   let before = new Date(date.getTime() - 24 * 60 * 60 * 1000)
-  return before.toISOString().slice(0, 10)
+  return toISODateString(before)
+}
+
+// toISODateString converts a Date to an ISO 8601 date string.
+function toISODateString(date) {
+  return date.toISOString().slice(0, 10)
 }
 
 async function main() {

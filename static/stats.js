@@ -1,6 +1,7 @@
 // adapted from https://observablehq.com/@tezzutezzu/world-history-timeline
 "use strict"
 
+const rso_mint = "#81d2c7"
 
 function createTooltip(el) {
   el
@@ -182,7 +183,7 @@ function drawChart(projects) {
         .attr("stroke-width", 1.5)
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
-        .attr("stroke", "#81d2c7")
+        .attr("stroke", rso_mint)
         .attr("d", d => lineCount(x.ticks(100)))
 
     gCount
@@ -240,6 +241,95 @@ function drawChart(projects) {
 
   }
 
+}
+
+function drawVideoReleases(videos) {
+  const parent = d3.select("#video-release-times");
+
+  const margin = ({top: 30, right: 30, bottom: 30, left: 30})
+  const width = parent.node().clientWidth
+  const height = 150
+  const padding = 2
+  const radius = 5
+
+  const x = d3.scaleLinear()
+    .domain([0, 24])
+    .range([margin.left, width - margin.right])
+
+  const xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+
+  const svg = parent.append("svg")
+    .attr("viewBox", [0, 0, width, height])
+
+  const hourOfVideo = v => {
+    let d = new Date(v.contentDetails.videoPublishedAt)
+    return d.getUTCHours() + d.getUTCMinutes() / 60
+  }
+
+  svg.append("g")
+    .call(xAxis)
+
+  svg.append("g")
+    .selectAll("a")
+    .data(dodge(videos, {radius: radius * 2 + padding, x: d => x(hourOfVideo(d))}))
+    .join("a")
+      .attr("href", d => `https://youtu.be/${d.data.contentDetails.videoId}`)
+    .append("circle")
+      .attr("cx", d => d.x)
+      .attr("cy", d => height - margin.bottom - radius - padding - d.y)
+      .attr("r", d => radius)
+      .attr("fill", rso_mint)
+    .append("title")
+      .text(d => `${d.data.snippet.title} (${d.data.contentDetails.videoPublishedAt.replace("T", " ").replace("Z", "")})`)
+        
+}
+
+// https://observablehq.com/@d3/beeswarm
+// By Mike Bostock, licensed under the ISC license
+function dodge(data, {radius = 1, x = d => d} = {}) {
+  const radius2 = radius ** 2;
+  const circles = data.map((d, i, data) => ({x: +x(d, i, data), data: d})).sort((a, b) => a.x - b.x);
+  const epsilon = 1e-3;
+  let head = null, tail = null;
+
+  // Returns true if circle ⟨x,y⟩ intersects with any circle in the queue.
+  function intersects(x, y) {
+    let a = head;
+    while (a) {
+      if (radius2 - epsilon > (a.x - x) ** 2 + (a.y - y) ** 2) {
+        return true;
+      }
+      a = a.next;
+    }
+    return false;
+  }
+
+  // Place each circle sequentially.
+  for (const b of circles) {
+
+    // Remove circles from the queue that can’t intersect the new circle b.
+    while (head && head.x < b.x - radius2) head = head.next;
+
+    // Choose the minimum non-intersecting tangent.
+    if (intersects(b.x, b.y = 0)) {
+      let a = head;
+      b.y = Infinity;
+      do {
+        let y = a.y + Math.sqrt(radius2 - (a.x - b.x) ** 2);
+        if (y < b.y && !intersects(b.x, y)) b.y = y;
+        a = a.next;
+      } while (a);
+    }
+
+    // Add b to the queue.
+    b.next = null;
+    if (head === null) head = tail = b;
+    else tail = tail.next = b;
+  }
+
+  return circles;
 }
 
 // sheetDate converts a date like "October 9th, 2020" to ISO 8601.
@@ -338,6 +428,8 @@ async function main() {
   }
   applyFilter()
   d3.select("#timeline-showold").on("change", applyFilter)
+
+  drawVideoReleases(data.Videos.filter(v => v.contentDetails.videoPublishedAt))
 
 }
 

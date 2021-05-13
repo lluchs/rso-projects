@@ -49,7 +49,7 @@ func fetchPreviousThrowbackPosts(bot reddit.Scanner) ([]*reddit.Post, error) {
 		"restrict_sr": "1",
 		"sort":        "new",
 		"limit":       "10",
-		"q":           "flair:\"Throwback Thursday\"",
+		"q":           "author:rso-throwback OR flair:\"Throwback Thursday\"",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("fetching throwback posts failed: %w", err)
@@ -83,6 +83,9 @@ CHOOSE:
 				continue CHOOSE
 			}
 		}
+
+		// video should be good
+		break
 	}
 	return &v, nil
 }

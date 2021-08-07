@@ -43,6 +43,7 @@ function countActiveAtDate(projects, date) {
 
 function drawChart(projects) {
   const parent = d3.select("#timeline");
+  if (parent.empty()) return
 
   const margin = ({top: 30, right: 30, bottom: 30, left: 30})
   const width = parent.node().clientWidth
@@ -245,6 +246,7 @@ function drawChart(projects) {
 
 function drawVideoReleases(videos) {
   const parent = d3.select("#video-release-times");
+  if (parent.empty()) return
 
   const margin = ({top: 30, right: 30, bottom: 30, left: 30})
   const width = parent.node().clientWidth
@@ -286,6 +288,58 @@ function drawVideoReleases(videos) {
         
 }
 
+function drawChronologySlide(videos) {
+  const parent = d3.select("#chronology-slide");
+  if (parent.empty()) return
+
+  const margin = ({top: 400, right: 1000, bottom: 300, left: 150})
+  const width = 1920
+  const height = 1920
+  const radius = 5
+
+  const cutoff = '2021-03-01'
+
+  const y = d3.scaleTime()
+    .domain(['2018-06-01', '2021-05-01'].map(d => new Date(d)))
+    .range([height - margin.bottom, margin.top])
+
+  const yAxis = g => g
+    .attr("transform", `translate(${width - margin.right + 50},0)`)
+    .call(d3.axisRight(y).tickSizeOuter(0))
+
+  const svg = parent.append("svg")
+    .attr("viewBox", [0, 0, width, height])
+
+  svg.append("image")
+    .attr("href", "chronologyslide.jpg")
+    .attr("width", width)
+    .attr("width", height)
+
+  const axis = svg.append("g")
+    .attr("opacity", 0)
+    .call(yAxis)
+
+  svg.on("mouseenter", e => {
+    axis.attr("opacity", 1)
+  })
+  svg.on("mouseleave", e => {
+    axis.attr("opacity", 0)
+  })
+
+  svg.append("g")
+    .selectAll("a")
+    .data(videos.filter(d => d.contentDetails.videoPublishedAt < cutoff))
+    .join("a")
+      .attr("href", d => `https://youtu.be/${d.contentDetails.videoId}`)
+    .append("circle")
+      .attr("cx", d => margin.left + Math.random() * (width - margin.left - margin.right))
+      .attr("cy", d => y(new Date(d.contentDetails.videoPublishedAt)))
+      .attr("r", d => radius)
+      .attr("fill", rso_mint)
+    .append("title")
+      .text(d => `${d.snippet.title} (${d.contentDetails.videoPublishedAt.replace("T", " ").replace("Z", "")})`)
+        
+}
 // https://observablehq.com/@d3/beeswarm
 // By Mike Bostock, licensed under the ISC license
 function dodge(data, {radius = 1, x = d => d} = {}) {
@@ -430,6 +484,8 @@ async function main() {
   d3.select("#timeline-showold").on("change", applyFilter)
 
   drawVideoReleases(data.Videos.filter(v => v.contentDetails.videoPublishedAt))
+
+  drawChronologySlide(data.Videos.filter(v => v.contentDetails.videoPublishedAt))
 
 }
 

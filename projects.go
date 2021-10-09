@@ -70,7 +70,7 @@ func isOpenInstrumentation(text string) bool {
 }
 
 // Example: The final date to submit is November 24th.
-var deadlineRegex = regexp.MustCompile(`(?mi)^.*(?:final date|due date|due on|last day).*?(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d+)`)
+var deadlineRegex = regexp.MustCompile(`(?mi)^.*(?:final date|final day|due date|due on|last day).*?(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d+)`)
 
 // findDeadline finds the deadline from the text. It returns a zero timestamp
 // if no deadline is found.
